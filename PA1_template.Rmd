@@ -2,8 +2,16 @@
 
 
 ## Loading and preprocessing the data
+I started by loading the data from the file _activity.zip_ present in this folder.
 
+```{r}
+originalData <- read.csv(unz("activity.zip", "activity.csv"),header=T)
+```
 
+After this, I cleaned the resulting data set from empty (NA) values.
+```{r}
+cleanData <- originalData[complete.cases(originalData$steps),]
+```
 
 ## What is mean total number of steps taken per day?
 
