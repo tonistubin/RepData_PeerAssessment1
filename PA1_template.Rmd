@@ -2,19 +2,47 @@
 
 
 ## Loading and preprocessing the data
+
 I started by loading the data from the file _activity.zip_ present in this folder.
+This file has data that has recorded the activity of a person via a personal activity 
+monitoring device during the month of October and November in 2012. The device collects data at five minute intervals throughout the day. The dataset has three columns: the number of steps taken during the 5-minute interval, the date, and the time of the interval (from 000 to 2355, resulting in 288 intervals per day).
 
 ```{r}
 originalData <- read.csv(unz("activity.zip", "activity.csv"),header=T)
 ```
 
-After this, I cleaned the resulting data set from empty (NA) values.
+After loading the data, I cleaned the resulting data set from empty (NA) values.
+
 ```{r}
 cleanData <- originalData[complete.cases(originalData$steps),]
 ```
 
 ## What is mean total number of steps taken per day?
 
+One of the basic things to do with this kind of data is to see how many steps a
+person takes during the day. First, let's make a histogram to see the distribution 
+of the total number of steps in a day.
+
+```{r}
+dateSteps <- aggregate(cleanData$steps ~ cleanData$date, cleanData, FUN = sum)
+colnames(dateSteps) <- c("date", "steps")
+hist(dateSteps$steps, xlab = "Number of Steps Per Day", 
+             main = "Histogram of Steps from Clean Data")
+```
+
+From the histogram we see that most often the person takes from 10,000 to 15,000 steps daily.
+
+Next, lets calculate the mean (as integer):
+
+```{r}
+as.integer(mean(dateSteps$steps))
+```
+
+and the median:
+
+```{r}
+median(dateSteps$steps)
+```
 
 
 ## What is the average daily activity pattern?
