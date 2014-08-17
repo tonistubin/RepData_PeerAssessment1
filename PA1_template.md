@@ -7,13 +7,15 @@ This assignment makes use of data from a personal activity monitoring device. Th
 I started by loading the data from the file __activity.zip__ present in this folder.
 The dataset has three columns: the number of _steps_ taken during the 5-minute interval, the _date_, and the time of the _interval_ (from 000 to 2355, resulting in 288 intervals per day).
 
-```{r}
+
+```r
 originalData <- read.csv(unz("activity.zip", "activity.csv"),header=T)
 ```
 
 After loading the data, I cleaned the resulting data set from empty (NA) values.
 
-```{r}
+
+```r
 cleanData <- originalData[complete.cases(originalData$steps),]
 ```
 
@@ -22,25 +24,38 @@ cleanData <- originalData[complete.cases(originalData$steps),]
 A good place to start when looking for information from the data is to see how many steps a
 person takes during the day on average. First, let's calculate and make a histogram to see the distribution of the total number of steps in a day.
 
-```{r}
+
+```r
 dateSteps <- aggregate(cleanData$steps ~ cleanData$date, cleanData, FUN = sum)
 colnames(dateSteps) <- c("date", "steps")
 hist(dateSteps$steps, xlab = "Number of Steps Per Day", 
              main = "Histogram of Steps from Clean Data")
 ```
 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
 From the histogram we see that most often the person takes from 10,000 to 15,000 steps daily.
 
 Next, let's calculate the mean:
 
-```{r}
+
+```r
 mean(dateSteps$steps)
+```
+
+```
+## [1] 10766
 ```
 
 and the median:
 
-```{r}
+
+```r
 median(dateSteps$steps)
+```
+
+```
+## [1] 10765
 ```
 
 
@@ -51,7 +66,8 @@ calcualted the mean of all the steps taken over all the days during the interval
 
 The graph shows how the activity changes during the day.
 
-```{r}
+
+```r
 cleanData$interval <- factor(cleanData$interval)
 stepIntervals <- aggregate(cleanData$steps ~ cleanData$interval, cleanData, FUN = mean)
 colnames(stepIntervals) <- c("interval", "steps")
@@ -61,19 +77,31 @@ plot(stepIntervals$interval, stepIntervals$steps, xlab = "Intervals",
              type = "l")
 ```
 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
+
 Next, I searched for the busiest five-minute interval.
 
-```{r}
+
+```r
 maxSteps <- which.max(stepIntervals$steps)
 stepIntervals$interval[maxSteps]
+```
+
+```
+## [1] 835
 ```
 
 In other words, the interval between 8:35 and 8:40 o'clock AM had the most steps taken on average during the two month period.
 
 Out of interest, let's see how many steps our subject took at that time on average.
 
-```{r}
+
+```r
 max(stepIntervals$steps)
+```
+
+```
+## [1] 206.2
 ```
 
 
@@ -81,15 +109,21 @@ max(stepIntervals$steps)
 What happens, if we substitute the values that were not available with a meaningful value?
 After all, there were quite many NA values. Let's see how many:
 
-```{r}
+
+```r
 nrow(originalData) - nrow(cleanData)
+```
+
+```
+## [1] 2304
 ```
 
 That's a big number. I chose to impute the missing values (NAs) with the mean value of the same interval across the days where there was a value.
 
 I started by creating a copy of the original data frame and filled the NAs with mean values. After that I produced a histogram to compare with the one produced from the values that were cleaned from NAs. 
 
-```{r}
+
+```r
 newData <- originalData
 newData$steps[is.na(newData$steps)] <- ave(newData$steps, newData$interval, FUN=function(x)
         mean(x, na.rm = TRUE))[is.na(newData$steps)]
@@ -99,16 +133,28 @@ hist(newSteps$steps, xlab = "Number of Steps Per Day",
         main = "Histogram of Steps from Imputed Data")
 ```
 
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
+
 The resulting histogram looks quite similar to the one produced from cleaned data. Let's see if the corresponding mean and median values follow suit. First, the mean value:
 
-```{r}
+
+```r
 mean(newSteps$steps)
+```
+
+```
+## [1] 10766
 ```
 
 And then the median:
 
-```{r}
+
+```r
 median(newSteps$steps)
+```
+
+```
+## [1] 10766
 ```
 
 The mean value is exactly the same, and the median differs only by one step. It can be said that using mean values to impute the missing values doesn't make a notable difference in this case.
@@ -123,7 +169,8 @@ I chose to use __POSIXlt$wday__ instead of __weekdays()__ mentioned in the assig
 
 The locale was changed to US in order to make using the code easier for an international audience.
 
-```{r results='hide'}
+
+```r
 Sys.setlocale(category = "LC_TIME", locale = "en_US.UTF-8")
 newData$date <- strptime(newData$date, format = "%Y-%m-%d")
 day <- as.POSIXlt(newData$date)$wday
@@ -135,11 +182,14 @@ weekendIntervals$interval <- as.numeric(as.character(weekendIntervals$interval))
 
 After this, I made a graph for easy comparison between weekend and weekday activity. The __ggplot__ function achieves this quite nicely.
 
-```{r}
+
+```r
 library(ggplot2)
 ggplot(weekendIntervals, aes(x=interval, y=steps)) + geom_line() + 
                 facet_wrap(~day, ncol=1) + xlab("Intervals") + ylab("Number of Steps") + 
                 ggtitle("Comparison of Average Steps Taken in Weekdays and Weekends")
 ```
+
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14.png) 
 
 There are clear differences to be seen between weekend and weekday activities. From looking at the graph it seems that on weekdays there's a sharp peak in the number of steps in the morning (going to work, maybe), whereas on the weekend there's not as much variation. 
